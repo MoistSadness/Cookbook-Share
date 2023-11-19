@@ -1,0 +1,20 @@
+# This is what selects which official python image will be pulled from docker
+FROM python:3.12.0-slim-bookworm
+
+# This is the starting directory inside the container where the source code is stored
+WORKDIR /code
+
+# Requirements.txt contains a list off all the packages that are to be installed in the container
+# Copy requirements.txt into the container
+COPY requirements.txt ./
+# Use requirements.txt to install all the dependencies inside the container
+# --no-cache-dir measn packages don't get stored with python since docker has it's own cache
+RUN pip install --no-cache-dir -r requirements.txt          
+
+# Copy source files from the current directory into the main working directory in the container
+COPY . .
+
+# Make port 4000 acessible to the local network
+EXPOSE 4000
+
+CMD [ "flask", "run", "--host=0.0.0.0", "--port=4000", "--debug"]
