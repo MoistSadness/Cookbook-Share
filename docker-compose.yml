@@ -11,19 +11,30 @@ services:
       - ./server:/code
     environment:
       - DB_URL=postgresql://postgres:postgres@flask_db:5432/postgres
+      - DB_HOST=postgres_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
+      - DB_PORT=5432
     depends_on:
-      - flask_db
-  flask_db:
-    container_name: flask_db
-    image: postgres:12
+      - postgres_db
+
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:16
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
+      - PGUSER=root
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Map intitialization scripts into containers
+      - ./db/seeds.sql:/docker-entrypoint-initdb.d/seeds.sql
+      # Persist the data
+      #- pgdata:/var/lib/postgresql/data
 
 volumes:
+# pgdata is stored locally within docker. use "docker volume ls" to view all the volumes and delete one if necessary
   pgdata: {}
