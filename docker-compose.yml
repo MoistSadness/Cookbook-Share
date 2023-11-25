@@ -1,8 +1,19 @@
 version: "3.9"
 
 services:
-  flask_app:
-    container_name: flask_app
+  cookbook_client:
+    container_name: cookbook_client
+    build: ./client
+    #entrypoint: /bin/sh     # The application that will execute at the time of entry within the container.
+    ports:
+     - 8000:8000
+    volumes:
+    # only ./src is mapped from the local host to the container, because it's contents are what are going to be modified the most
+    # If the entirety of the source code was to be mapped, it would cause dependency conflicts  
+      - ./client/src:/client/src
+
+  cookbook_server:
+    container_name: cookbook_server
     build: ./server
     ports:
       - "4000:4000"
@@ -10,17 +21,17 @@ services:
     volumes:
       - ./server:/code
     environment:
-      - DB_URL=postgresql://postgres:postgres@flask_db:5432/postgres
-      - DB_HOST=postgres_db
+    #  - DB_URL=postgresql://postgres:postgres@server:5432/postgres
+      - DB_HOST=cookbook_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=postgres
       - DB_PORT=5432
     depends_on:
-      - postgres_db
+      - cookbook_db
 
-  postgres_db:
-    container_name: postgres_db
+  cookbook_db:
+    container_name: cookbook_db
     image: postgres:16
     ports:
       - "5432:5432"

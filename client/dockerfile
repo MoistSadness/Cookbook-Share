@@ -1,0 +1,13 @@
+FROM node:lts-alpine
+WORKDIR /client
+
+# Copy the package.json to the container so it can install linux native packages from NPM
+COPY package.json /client
+# Install packages
+RUN npm install
+RUN npm install rollup
+# Copy all source code to the container, including the configuration files stored in the project root
+# In this case, copying vite-config is important because it is what allows the development environment to be connected outside the container
+COPY . .
+
+CMD ["npm", "run", "dev"]

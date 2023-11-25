@@ -1,3 +1,10 @@
+
+CREATE TABLE IF NOT EXISTS Recipies(
+    id              TEXT    NOT NULL    PRIMARY KEY,
+    ingredients     TEXT,
+    instructions    TEXT
+);
+
 -- Creation of User table
 CREATE TABLE IF NOT EXISTS Users (
     username    TEXT    NOT NULL,

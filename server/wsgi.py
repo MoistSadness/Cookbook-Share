@@ -42,7 +42,6 @@ def GetAllUsers():
   cursor=connection.cursor()
   cursor.execute('SELECT * FROM Users')
   users = cursor.fetchall()
-  print(users, flush=True)
   
   return make_response(jsonify(users), 200)
 
