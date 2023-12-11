@@ -35,20 +35,33 @@ User data should look like the following:
   recipies: recipie[]
 '''
 
-# Get all users
-@app.route('/api/v1/recipies', methods=['GET'])
-def GetAllUsers():
-  connection = ConnectToDB()
-  cursor=connection.cursor()
-  cursor.execute('SELECT * FROM Users')
-  users = cursor.fetchall()
-  
-  return make_response(jsonify(users), 200)
 
-# Register new user
-@app.route('/api/v1/recipies', methods=['POST'])
+UsersRootURL = '/api/v1/users'
+RecipiesRootURL = '/api/v1/recipies'
+
+##################################################################
+# @desc     Get all users
+# route     GET     /api/v1/users
+# @access   Public
+@app.route(UsersRootURL, methods=['GET'])
+def GetAllUsers():
+  try:
+    connection = ConnectToDB()
+    cursor=connection.cursor()
+    cursor.execute('SELECT * FROM Users')
+    users = cursor.fetchall()
+    return make_response(jsonify(users), 200)
+  except Exception as e:
+    return make_response(jsonify({'message': str(e)}), 400)
+
+
+##################################################################
+# @desc     Register new user
+# route     POST    /api/v1/users
+# @access   Public
+@app.route(UsersRootURL, methods=['POST'])
 def RegisterNewUser():
-  data = request.get_json()
+  data = request.form.to_dict()
   #print(data, flush=True)
   salt = bcrypt.gensalt()
   hashed = bcrypt.hashpw(data["password"].encode('utf8'), salt)
@@ -69,22 +82,58 @@ def RegisterNewUser():
     cursor.close()
     return make_response(jsonify({'message': f"Registered {inserted}"}), 200)
   except Exception as e:
-    return make_response(jsonify({'message': str(e)}), 200)
-
-# Delete user
-
-# Log in
-
-# Get Access Token
-
-# Get Refresh Token
+    return make_response(jsonify({'message': str(e)}), 400)
 
 
+##################################################################
+# @desc     Get one user
+# route     GET    /api/v1/users/<username>
+# @access   Public
+@app.route(UsersRootURL + "/<username>", methods = ['GET'])
+def GetOneUser(username):
+  return make_response(jsonify({'message': f"Viewing {username}\'s Profile"}), 200)
+
+
+##################################################################
+# @desc     Update a user
+# route     PUT    /api/v1/users/<username>
+# @access   Private
+@app.route(UsersRootURL + "/<username>", methods = ['PUT'])
+def UpdateOneUser(username):
+  return make_response(jsonify({'message': f"Updating {username}\'s Profile"}), 200)
+
+
+##################################################################
+# @desc     Delete a user
+# route     DELETE    /api/v1/users/<username>
+# @access   Private
+@app.route(UsersRootURL + "/<username>", methods = ['DELETE'])
+def DeleteOneUser(username):
+  return make_response(jsonify({'message': f"Deleting {username}\'s Profile"}), 200)
+
+
+##################################################################
+# @desc     Get an authentication token
+# route     POST    /api/v1/users/auth
+# @access   Public
+@app.route(UsersRootURL + "/<username>", methods = ['DELETE'])
+def Authenticate(username):
+  return make_response(jsonify({'message': f"Authenticating"}), 200)
+
+# Log out
+
+
+
+
+
+
+################################################################
+################################################################
 ################################################################
 # Recpipe Stuff
 
 # Get all recipies
-@app.route('/api/v1/recipies', methods=['GET'])
+@app.route(RecipiesRootURL, methods=['GET'])
 def GetAllRecipies():
   return make_response(jsonify({'message': 'All Recipies'}), 200)
   
@@ -93,113 +142,18 @@ def GetAllRecipies():
 
 
 # Create a recipie
-@app.route('/api/v1/recipies', methods=['POST'])
+@app.route(RecipiesRootURL, methods=['POST'])
 def CreateRecipies():
   data = request.get_json()
   return make_response(jsonify({'message': 'Recipie Created'}), 200)
 
 # Delete a recipie
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-################################################################
-# This is the original sample code
-'''
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
-db = SQLAlchemy(app)
-
-class User(db.Model):
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-
-    def json(self):
-        return {'id': self.id,'username': self.username, 'email': self.email}
-
-# App context needs to be active if the database is to be used
-with app.app_context():
-  db.create_all()
-
-#create a test route
-@app.route('/test', methods=['GET'])
-def test():
-  return make_response(jsonify({'message': 'My test!'}), 200)
-
-
-# create a user
-@app.route('/users', methods=['POST'])
-def create_user():
-  try:
-    data = request.get_json()
-    new_user = User(username=data['username'], email=data['email'])
-    db.session.add(new_user)
-    db.session.commit()
-    return make_response(jsonify({'message': 'user created'}), 201)
-  except Exception as e:
-    print(e)
-    return make_response(jsonify({'message': 'error creating user'}), 500)
-
-# get all users
-@app.route('/users', methods=['GET'])
-def get_users():
-  try:
-    users = User.query.all()
-    return make_response(jsonify([user.json() for user in users]), 200)
-  except:
-    return make_response(jsonify({'message': 'error getting users'}), 500)
-
-# get a user by id
-@app.route('/users/<int:id>', methods=['GET'])
-def get_user(id):
-  try:
-    user = User.query.filter_by(id=id).first()
-    if user:
-      return make_response(jsonify({'user': user.json()}), 200)
-    return make_response(jsonify({'message': 'user not found'}), 404)
-  except:
-    return make_response(jsonify({'message': 'error getting user'}), 500)
-
-# update a user
-@app.route('/users/<int:id>', methods=['PUT'])
-def update_user(id):
-  try:
-    user = User.query.filter_by(id=id).first()
-    if user:
-      data = request.get_json()
-      user.username = data['username']
-      user.email = data['email']
-      db.session.commit()
-      return make_response(jsonify({'message': 'user updated'}), 200)
-    return make_response(jsonify({'message': 'user not found'}), 404)
-  except:
-    return make_response(jsonify({'message': 'error updating user'}), 500)
-
-# delete a user
-@app.route('/users/<int:id>', methods=['DELETE'])
-def delete_user(id):
-  try:
-    user = User.query.filter_by(id=id).first()
-    if user:
-      db.session.delete(user)
-      db.session.commit()
-      return make_response(jsonify({'message': 'user deleted'}), 200)
-    return make_response(jsonify({'message': 'user not found'}), 404)
-  except:
-    return make_response(jsonify({'message': 'error deleting user'}), 500)
-    '''
+#Error Handling
+@app.errorhandler(404)
+def page_not_found(error):
+    return make_response(jsonify({
+      "code": 404,
+      "message": "Page not found"
+    }
+))
